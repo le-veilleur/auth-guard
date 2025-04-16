@@ -1,0 +1,78 @@
+services:
+  # Service de l'API AuthGuard (dev)
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: authguard-api
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - authguard-network
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    command: [ "dumb-init", "npm", "run", "dev" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: authguard-postgres
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - authguard-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Interface d'administration pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: authguard-pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - authguard-network
+
+networks:
+  authguard-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  pgadmin-data:
+    driver: local
