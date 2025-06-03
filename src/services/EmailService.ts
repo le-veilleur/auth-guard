@@ -23,6 +23,7 @@ export class EmailService {
    * @param {string} verificationToken - Token de vérification
    * @returns {Promise<void>}
    */
+  
   static async sendVerificationEmail(email: string, verificationToken: string): Promise<void> {
     const verificationUrl = `${config.app.baseUrl}/verify-email?token=${verificationToken}`;
     
@@ -53,6 +54,7 @@ export class EmailService {
    * @param {string} resetToken - Token de réinitialisation
    * @returns {Promise<void>}
    */
+
   static async sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
     const resetUrl = `${config.app.baseUrl}/reset-password?token=${resetToken}`;
     

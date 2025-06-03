@@ -39,7 +39,7 @@ export const errorHandler = (
   err: Error,
   req: express.Request,
   res: express.Response,
-  next: express.NextFunction
+  _next: express.NextFunction
 ) => {
   logger.error(`${err.message}\n${err.stack}`);
   res.status(500).json({
@@ -57,4 +57,4 @@ export const notFoundHandler = (req: express.Request, res: express.Response) => 
     error: "Not Found",
     message: `Route ${req.originalUrl} not found`
   });
-}; 
+};

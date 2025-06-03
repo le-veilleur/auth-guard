@@ -76,6 +76,18 @@ export class AuthService {
     const newAccessToken = this.generateAccessToken(user);
     return { accessToken: newAccessToken };
   }
+
+  static async logout(refreshToken: string) {
+    const decoded = verify(refreshToken, this.JWT_SECRET) as { id: number };
+    
+    await prisma.user.update({
+      where: { id: decoded.id },
+      data: { refreshToken: null },
+    });
+
+    return { message: 'User logged out successfully' };
+  }
+
   private static generateAccessToken(user: { id: number; role: Role }) {
     return sign(
       { id: user.id, role: user.role },

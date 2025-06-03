@@ -26,18 +26,20 @@ export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     // Vérification de la présence du header d'autorisation
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      return res.status(401).json({ message: "No token provided" });
+      res.status(401).json({ message: "No token provided" });
+      return;
     }
 
     // Extraction du token du header (format: "Bearer <token>")
     const token = authHeader.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ message: "Token format invalid" });
+      res.status(401).json({ message: "Token format invalid" });
+      return;
     }
 
     // Vérification et décodage du token JWT
@@ -53,7 +55,8 @@ export const authMiddleware = async (
 
     // Vérification de l'existence de l'utilisateur
     if (!user) {
-      return res.status(401).json({ message: "User not found" });
+      res.status(401).json({ message: "User not found" });
+      return;
     }
 
     // Attachement de l'utilisateur à l'objet request pour utilisation dans les routes
@@ -65,9 +68,10 @@ export const authMiddleware = async (
 
     // Passage au middleware suivant
     next();
-  } catch (error) {
+  } catch {
     // Gestion des erreurs de vérification du token
-    return res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid token" });
+    return;
   }
 };
 

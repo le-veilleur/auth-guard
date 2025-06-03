@@ -78,6 +78,9 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+.env.production
+.env.staging
+.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -134,3 +137,43 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# ==========================================
+# 🚀 CI/CD RELATED FILES
+# ==========================================
+
+# Compiled JS files in src/ (keep only TypeScript sources)
+src/**/*.js
+src/**/*.js.map
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Jest
+.jest-cache/
+
+# Docker
+.dockerignore
+
+# Deployment logs
+deployment.log
+deploy.log
+
+# Backup files
+*.backup
+*.bak
+*.sql.gz
+*.dump
+
+# SSL certificates (except examples)
+*.pem
+*.key
+*.crt
+*.csr
+!*.example.*
+
+# Monitoring & logs
+monitoring/
+logs/
+*.log.*

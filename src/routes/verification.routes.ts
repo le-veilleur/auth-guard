@@ -1,6 +1,7 @@
 /**
  * Routes pour la vérification d'e-mail
  */
+
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { EmailService } from "../services/EmailService";
@@ -13,6 +14,7 @@ const prisma = new PrismaClient();
  * Envoie un e-mail de vérification à un utilisateur
  * @route POST /send-verification
  */
+
 router.post("/send-verification", (req, res) => {
   const handleSendVerification = async () => {
     try {
@@ -61,6 +63,7 @@ router.post("/send-verification", (req, res) => {
  * Vérifie l'e-mail d'un utilisateur avec le token
  * @route GET /verify-email
  */
+
 router.get("/verify-email", (req, res) => {
   const handleVerifyEmail = async () => {
     try {

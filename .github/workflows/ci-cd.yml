@@ -1,0 +1,194 @@
+name: 🔐 AuthGuard CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: auth-guard
+
+jobs:
+  # ==================== TESTS & LINTING ====================
+  test:
+    name: 🧪 Tests & Linting
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: authguard_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧹 Lint code
+        run: npm run lint
+
+      - name: 🏗️ Build TypeScript
+        run: npm run build
+
+      - name: 🗄️ Setup test database
+        run: |
+          npm run prisma:generate
+          npm run prisma:migrate:deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/authguard_test
+
+      - name: 🧪 Run tests
+        run: npm run test:ci
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/authguard_test
+          JWT_SECRET: test_secret_key_for_testing
+          REFRESH_TOKEN_SECRET: test_refresh_secret
+          NODE_ENV: test
+
+      - name: 📊 Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+
+  # ==================== SECURITY SCAN ====================
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run security audit
+        run: npm audit --audit-level moderate
+
+      - name: 🛡️ CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: typescript
+
+      - name: 🏗️ Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: 📋 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # ==================== DOCKER BUILD ====================
+  docker:
+    name: 🐳 Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🏗️ Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==================== STAGING DEPLOYMENT ====================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy to staging
+        run: |
+          echo "🚀 Déploying to staging environment..."
+          # Remplace par ton script de déploiement staging
+          # Par exemple: kubectl apply -f k8s/staging/
+          # Ou: docker-compose -f docker-compose.staging.yml up -d
+
+  # ==================== PRODUCTION DEPLOYMENT ====================
+  deploy-production:
+    name: 🎯 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🎯 Deploy to production
+        run: |
+          echo "🎯 Deploying to production environment..."
+          # Remplace par ton script de déploiement production
+          # Par exemple: kubectl apply -f k8s/production/
+          # Ou: docker-compose -f docker-compose.prod.yml up -d
+
+  # ==================== NOTIFICATION ====================
+  notify:
+    name: 📢 Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+      - name: 📢 Send notification
+        if: failure()
+        run: |
+          echo "❌ Pipeline failed! Check the logs."
+          # Ajoute ici tes notifications (Slack, Discord, email, etc.)
+      
+      - name: ✅ Success notification
+        if: success()
+        run: |
+          echo "✅ Pipeline completed successfully!"
+          # Ajoute ici tes notifications de succès 
