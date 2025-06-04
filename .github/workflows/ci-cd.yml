@@ -2,7 +2,7 @@ name: 🔐 AuthGuard CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   pull_request:
     branches: [ main ]
 
@@ -99,7 +99,7 @@ jobs:
     name: 🐳 Docker Build & Push
     runs-on: ubuntu-latest
     needs: [test, security]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     
     steps:
       - name: 📥 Checkout code
@@ -130,7 +130,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/Dockerfile
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -142,7 +142,7 @@ jobs:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
     needs: [docker]
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/dev'
     
     steps:
       - name: 📥 Checkout code
@@ -150,10 +150,11 @@ jobs:
 
       - name: 🚀 Deploy to staging
         run: |
-          echo "🚀 Déploying to staging environment..."
-          # Remplace par ton script de déploiement staging
-          # Par exemple: kubectl apply -f k8s/staging/
-          # Ou: docker-compose -f docker-compose.staging.yml up -d
+          echo "🚀 Deploying to staging environment..."
+          echo "Using Docker Compose for staging deployment"
+          # Simulation du déploiement - remplace par ton vrai script
+          docker-compose -f docker-compose.yml config
+          echo "✅ Staging deployment configured successfully"
 
   # ==================== PRODUCTION DEPLOYMENT ====================
   deploy-production:
@@ -169,9 +170,10 @@ jobs:
       - name: 🎯 Deploy to production
         run: |
           echo "🎯 Deploying to production environment..."
-          # Remplace par ton script de déploiement production
-          # Par exemple: kubectl apply -f k8s/production/
-          # Ou: docker-compose -f docker-compose.prod.yml up -d
+          echo "Using Docker Compose for production deployment"
+          # Simulation du déploiement - remplace par ton vrai script
+          docker-compose -f docker-compose.yml config
+          echo "✅ Production deployment configured successfully"
 
   # ==================== NOTIFICATION ====================
   notify:
