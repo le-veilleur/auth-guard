@@ -8,12 +8,13 @@ import { connectDB } from "./config/database";
 import logger from "./config/logger";
 import { setupMiddlewares, errorHandler, notFoundHandler } from "./middlewares";
 import routes from "./routes";
+import { specs, swaggerUi } from "./config/swagger";
 
 // Chargement des variables d'environnement
 dotenv.config();
 
 const app: Application = express();
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT || '3000');
 
 async function startServer() {
   try {
@@ -47,6 +48,13 @@ async function startServer() {
 
     app.use(limiter);
 
+    // Documentation Swagger
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'AuthGuard API Documentation'
+    }));
+
     // Health check
     app.get("/api/health", (_, res) => {
       res
@@ -65,10 +73,13 @@ async function startServer() {
     app.use(notFoundHandler);
 
     // Démarrage du serveur
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
       logger.info(`AuthGuard API running on port ${port}`);
       logger.info(
         `Health check available at http://localhost:${port}/api/health`
+      );
+      logger.info(
+        `API Documentation available at http://localhost:${port}/api-docs`
       );
     });
   } catch (error) {
