@@ -1,8 +1,10 @@
-# Image de base Node.js
-FROM node:20-alpine
+# Image de base Node.js sécurisée
+FROM node:20-alpine3.19
 
 # Installation + mises à jour de sécurité
-RUN apk update && apk upgrade && apk add --no-cache dumb-init
+RUN apk update && apk upgrade && apk add --no-cache dumb-init \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S nextjs -u 1001
 
 # Répertoire de travail
 WORKDIR /app
@@ -23,8 +25,12 @@ RUN npx prisma generate
 # Copie du code source
 COPY src ./src
 
+# Créer dossier logs avec bonnes permissions
+RUN mkdir -p logs && chown -R nextjs:nodejs /app
+USER nextjs
+
 # Exposition du port
-EXPOSE 3000
+EXPOSE 3001
 
 # Lancement en mode développement
 CMD ["dumb-init", "npm", "run", "dev"] 

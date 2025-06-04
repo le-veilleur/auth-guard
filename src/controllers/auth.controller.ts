@@ -90,4 +90,67 @@ export class AuthController {
       }
     }
   }
+
+  /**
+   * Vérification d'email
+   */
+  static async verifyEmail(req: Request, res: Response) {
+    try {
+      const { token } = req.body;
+      const result = await AuthService.verifyEmail(token);
+      return res.status(200).json(result);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return res
+          .status(400)
+          .json({ message: `Email verification failed: ${error.message}` });
+      } else {
+        return res
+          .status(400)
+          .json({ message: 'An unknown error occurred during email verification' });
+      }
+    }
+  }
+
+  /**
+   * Demande de reset de mot de passe
+   */
+  static async requestPasswordReset(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      const result = await AuthService.requestPasswordReset(email);
+      return res.status(200).json(result);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return res
+          .status(500)
+          .json({ message: `Password reset request failed: ${error.message}` });
+      } else {
+        return res
+          .status(500)
+          .json({ message: 'An unknown error occurred during password reset request' });
+      }
+    }
+  }
+
+  /**
+   * Reset de mot de passe
+   */
+  static async resetPassword(req: Request, res: Response) {
+    try {
+      const { token, newPassword } = req.body;
+      const result = await AuthService.resetPassword(token, newPassword);
+      return res.status(200).json(result);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return res
+          .status(400)
+          .json({ message: `Password reset failed: ${error.message}` });
+      } else {
+        return res
+          .status(400)
+          .json({ message: 'An unknown error occurred during password reset' });
+      }
+    }
+  }
 } 

@@ -7,14 +7,19 @@ Elle vise à proposer une base robuste pour sécuriser l'accès à vos applicati
 
 ## ✨ Fonctionnalités
 
-- ✅ Inscription et connexion avec e-mail + mot de passe  
-- ✅ Hash sécurisé des mots de passe (bcrypt ou argon2)  
-- ✅ Gestion des tokens JWT (access + refresh)  
-- ✅ Authentification à deux facteurs (2FA via TOTP)  
-- ✅ Protection contre les attaques brute-force (rate limiting)  
-- ✅ Déconnexion sécurisée  
-- ✅ Middleware de protection des routes  
-- ✅ Gestion des rôles (RBAC) *(optionnel, à venir)*  
+- ✅ **Inscription et connexion** avec e-mail + mot de passe  
+- ✅ **Hash sécurisé** des mots de passe (bcrypt)  
+- ✅ **Gestion des tokens JWT** (access + refresh)  
+- ✅ **Validation complète** des données d'entrée (express-validator)
+- ✅ **Protection des routes** avec middleware d'authentification
+- ✅ **Gestion des profils utilisateur** (GET/PUT /api/user/profile)
+- ✅ **Email de vérification** et reset de mot de passe
+- ✅ **Protection contre les attaques** brute-force (rate limiting)  
+- ✅ **Documentation API complète** avec Swagger UI
+- ✅ **Déconnexion sécurisée** avec invalidation des tokens
+- ✅ **Architecture sécurisée** avec Docker Alpine et utilisateur non-root
+- 🔄 Authentification à deux facteurs (2FA via TOTP) *(en cours)*  
+- 🔄 Gestion des rôles (RBAC) *(à venir)*
 
 ---
 
@@ -41,7 +46,10 @@ npm install
 # Configure les variables d'environnement
 cp .env.example .env
 
-# Lance le serveur
+# Lance le serveur (Docker)
+docker compose up --build
+
+# Ou en mode développement local
 npm run dev
 ```
 
@@ -95,3 +103,12 @@ Ce projet est sous licence MIT – libre à utiliser et adapter pour vos besoins
 
 Développé par **Maxime Louis**, développeur backend passionné par la sécurité et les architectures robustes.
 📬 Contact : [LinkedIn](https://www.linkedin.com/in/maxime-l-5530941b5/)
+
+### 📊 Accès aux services
+
+Une fois l'application démarrée, vous avez accès à :
+
+- **🌐 API** : http://localhost:3000
+- **📖 Documentation Swagger** : http://localhost:3000/api-docs
+- **🔍 Health Check** : http://localhost:3000/api/health
+- **🗄️ pgAdmin** : http://localhost:5050 (admin@admin.com / admin)
