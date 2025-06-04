@@ -181,11 +181,21 @@ jobs:
         run: |
           echo "🚀 Deploying to staging environment..."
           echo "Using Docker Compose for staging deployment"
+          echo "📋 Creating temporary .env file for validation..."
+          # Créer un fichier .env temporaire pour la validation
+          cat > .env << EOF
+          NODE_ENV=staging
+          DATABASE_URL=postgresql://user:pass@localhost:5432/authguard_staging
+          JWT_SECRET=staging_jwt_secret
+          REFRESH_TOKEN_SECRET=staging_refresh_secret
+          PORT=3000
+          EOF
           echo "📋 Checking Docker Compose configuration..."
-          # Utilise la nouvelle syntaxe Docker Compose
           docker compose -f docker-compose.yml config --quiet
           echo "✅ Staging deployment configuration validated successfully"
           echo "🎯 Staging environment ready for deployment"
+          # Nettoyer le fichier .env temporaire
+          rm .env
 
   # ==================== PRODUCTION DEPLOYMENT ====================
   deploy-production:
@@ -205,11 +215,21 @@ jobs:
         run: |
           echo "🎯 Deploying to production environment..."
           echo "Using Docker Compose for production deployment"
+          echo "📋 Creating temporary .env file for validation..."
+          # Créer un fichier .env temporaire pour la validation
+          cat > .env << EOF
+          NODE_ENV=production
+          DATABASE_URL=postgresql://user:pass@localhost:5432/authguard_prod
+          JWT_SECRET=production_jwt_secret
+          REFRESH_TOKEN_SECRET=production_refresh_secret
+          PORT=3000
+          EOF
           echo "📋 Checking Docker Compose configuration..."
-          # Utilise la nouvelle syntaxe Docker Compose
           docker compose -f docker-compose.yml config --quiet
           echo "✅ Production deployment configuration validated successfully"
           echo "🎯 Production environment ready for deployment"
+          # Nettoyer le fichier .env temporaire
+          rm .env
 
   # ==================== AUTO-MERGE TO MAIN ====================
   auto-merge:
@@ -229,35 +249,25 @@ jobs:
           fetch-depth: 0
 
       - name: 🔀 Create Pull Request to Main
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          head: dev
-          title: "🚀 Auto-merge: Deploy dev to production"
-          body: |
-            ## 🚀 Déploiement automatique vers la production
-            
-            Cette PR a été créée automatiquement car tous les tests et validations ont réussi sur la branche `dev`.
-            
-            ### ✅ Validations réussies :
-            - 🧪 Tests unitaires et d'intégration
-            - 🔒 Analyse de sécurité CodeQL
-            - 🐳 Build et push Docker
-            - 🚀 Déploiement staging validé
-            
-            ### 📋 Changements inclus :
-            Tous les commits depuis le dernier merge vers main.
-            
-            ### 🎯 Actions après merge :
-            - Déploiement automatique en production
-            - Notification d'équipe
-            
-            ---
-            
-            🤖 *Cette PR a été générée automatiquement par le workflow CI/CD*
-          draft: false
-          delete-branch: false
+        run: |
+          gh pr create \
+            --base main \
+            --head dev \
+            --title "🚀 Auto-merge: Deploy dev to production" \
+            --body "## 🚀 Déploiement automatique vers la production
+
+          Cette PR a été créée automatiquement car tous les tests et validations ont réussi sur la branche \`dev\`.
+
+          ### ✅ Validations réussies :
+          - 🧪 Tests unitaires et d'intégration  
+          - 🔒 Analyse de sécurité CodeQL
+          - 🐳 Build et push Docker
+          - 🚀 Déploiement staging validé
+
+          🤖 *Cette PR a été générée automatiquement par le workflow CI/CD*" \
+            || echo "PR might already exist"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🎯 Auto-approve and merge (si configuré)
         if: contains(github.event.head_commit.message, '[auto-merge]')
