@@ -2,12 +2,12 @@ services:
   # Service de l'API AuthGuard (dev)
   api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: authguard-api
     restart: unless-stopped
     env_file:
-      - ../.env
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
@@ -16,7 +16,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../:/app
+      - .:/app
       - /app/node_modules
       - ./logs:/app/logs
     command: [ "dumb-init", "npm", "run", "dev" ]
@@ -32,7 +32,7 @@ services:
     container_name: authguard-postgres
     restart: unless-stopped
     env_file:
-      - ../.env
+      - .env
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:

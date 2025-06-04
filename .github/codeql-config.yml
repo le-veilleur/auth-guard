@@ -1,0 +1,26 @@
+name: "AuthGuard CodeQL Config"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths-ignore:
+  - node_modules/
+  - dist/
+  - coverage/
+  - logs/
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+
+paths:
+  - src/
+
+# Configuration pour TypeScript/JavaScript
+packs:
+  javascript:
+    - codeql/javascript-queries:Security/CWE-079
+    - codeql/javascript-queries:Security/CWE-089
+    - codeql/javascript-queries:Security/CWE-094
+    - codeql/javascript-queries:Security/CWE-798 
